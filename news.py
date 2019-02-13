@@ -3,20 +3,23 @@ import psycopg2
 DBNAME = "news"
 
 
-# Query data from the database, open and close the connection
+# open connection, query data from the database, close the connection 
 def query_db(request):
-    conn = psycopg2.connect(database=DBNAME)
-    cursor = conn.cursor()
-    cursor.execute(request)
-    results = cursor.fetchall()
-    conn.close()
-    return results
+    try:
+        conn = psycopg2.connect(database=DBNAME)
+        cursor = conn.cursor()
+        cursor.execute(request)
+        results = cursor.fetchall()
+        conn.close()
+        return results
+    except:
+        print ("Unable to connect to the database")
 
 
 # query the 3 most popular post, most popular first
 query_pop_articles = """SELECT title, COUNT(*) AS views
     FROM articles, log
-    WHERE path LIKE concat('%', slug, '%')
+    WHERE path = CONCAT('/article/', slug)
     GROUP BY path, title
     ORDER BY views DESC
     LIMIT 3;"""
@@ -26,7 +29,7 @@ query_pop_articles = """SELECT title, COUNT(*) AS views
 query_pop_authors = """SELECT name, COUNT(*) AS views
     FROM articles, authors, log
     WHERE authors.id = articles.author
-    AND path LIKE concat('%', slug, '%')
+    AND path = concat('/article/', slug)
     GROUP BY name
     ORDER BY views DESC;
     """
